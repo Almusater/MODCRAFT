@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MODCRAFT | Minecraft Bedrock Mods</title>
+  <link rel="icon" type="image/png" href="./images/creeper-logo.png">
+  <meta name="description" content="Download the best Minecraft Bedrock Edition mods, add-ons, shaders, and texture packs for Windows 10 & 11." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body.lang-ar { font-family: 'Cairo', sans-serif; }
+    body.lang-en { font-family: 'Inter', sans-serif; }
+    body { background-color: #0b1120; color: #f8fafc; }
+    .card-hover:hover { transform: translateY(-4px); border-color: #22c55e; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lang-ar">
+
+  <!-- الشريط العلوي -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src="./images/creeper-logo.png" alt="MODCRAFT Logo" class="w-11 h-11 rounded-xl object-cover shadow-md border border-emerald-500/30" />
+        <div>
+          <h1 class="text-xl font-black tracking-wide text-white">MOD<span class="text-emerald-500">CRAFT</span></h1>
+          <p data-i18n="brandSub" class="text-[11px] text-slate-400">Windows 10 & 11 Bedrock Mods</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="#guides-section" data-i18n="navGuides" class="hidden sm:inline-block px-3 py-2 text-sm text-slate-300 hover:text-emerald-400 font-semibold transition">
+          الشروحات
+        </a>
+        <button onclick="openGuideModal()" data-i18n="navInstall" class="px-3.5 py-2 rounded-lg border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 text-xs sm:text-sm font-semibold transition">
+          دليل التثبيت
+        </button>
+        <button onclick="toggleLanguage()" id="langToggleBtn" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-bold transition">
+          🌐 English
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- القسم الرئيسي والبحث -->
+  <main class="max-w-7xl mx-auto px-4 py-10 flex-1 w-full">
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <h2 data-i18n="heroTitle" class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">
+        اكتشف وحمّل أفضل مودات وشيدر <span class="text-emerald-400">ماين كرافت بيدروك</span>
+      </h2>
+      <p data-i18n="heroDesc" class="text-slate-400 text-sm mb-6">
+        تحميل مباشر وآمن بصيغ <code class="text-emerald-400">.mcaddon</code> و <code class="text-emerald-400">.mcpack</code>
+      </p>
+
+      <!-- مربع البحث -->
+      <div class="relative">
+        <input id="searchInput" type="text" placeholder="ابحث عن اسم المود (مثال: Furniture, Dragons, Shader)..."
+          class="w-full bg-slate-900 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl px-5 py-3.5 text-white outline-none transition shadow-lg"
+          onkeyup="handleSearch(event)" />
+        <button onclick="fetchMods()" data-i18n="searchBtn" id="searchActionBtn"
+          class="absolute left-2 top-2 bottom-2 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md">
+          بحث
+        </button>
+      </div>
+
+      <!-- أزرار التصنيفات المدمجة -->
+      <div class="flex flex-wrap justify-center gap-2 mt-5" id="categoryButtons">
+        <button data-type="" data-i18n="catAll" onclick="selectCategory(this)" class="cat-btn active px-4 py-1.5 rounded-xl text-sm font-bold bg-emerald-500 text-slate-950 shadow">الكل</button>
+        <button data-type="addon" data-i18n="catAddons" onclick="selectCategory(this)" class="cat-btn px-4 py-1.5 rounded-xl text-sm font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800">مودات وإضافات (Addons)</button>
+        <button data-type="texture" data-i18n="catTextures" onclick="selectCategory(this)" class="cat-btn px-4 py-1.5 rounded-xl text-sm font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800">تيكستشر باك وشيدر</button>
+        <button data-type="world" data-i18n="catWorlds" onclick="selectCategory(this)" class="cat-btn px-4 py-1.5 rounded-xl text-sm font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800">عوالم (Worlds)</button>
+      </div>
+    </div>
+
+    <!-- رسالة الحالة -->
+    <div id="statusMessage" class="text-center text-slate-400 py-12 hidden"></div>
+
+    <!-- شبكة المودات -->
+    <div id="modsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16"></div>
+
+    <!-- قسم المقالات والشروحات -->
+    <section id="guides-section" class="border-t border-slate-800/80 pt-12 mt-8">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3.5 py-1 rounded-full" data-i18n="blogBadge">مركز المعرفة</span>
+        <h2 data-i18n="blogHeading" class="text-2xl md:text-3xl font-extrabold mt-3 mb-2">دليلك الشامل لمودات ماين كرافت بيدروك على الويندوز</h2>
+        <p data-i18n="blogSub" class="text-sm text-slate-400">مقالات تقنية مبسطة لمساعدتك في تثبيت الإضافات وحل المشاكل الشائعة بأمان تام.</p>
+      </div>
+      <div id="articlesContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+  </main>
+
+  <!-- التذييل -->
+  <footer class="bg-slate-900 border-t border-slate-800 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <p data-i18n="footerCopy">© 2026 MODCRAFT. جميع الحقوق محفوظة.</p>
+      <div class="flex items-center gap-4">
+        <button onclick="openLegalModal('privacy')" data-i18n="footerPrivacy" class="hover:text-emerald-400 transition">سياسة الخصوصية</button>
+        <button onclick="openLegalModal('terms')" data-i18n="footerTerms" class="hover:text-emerald-400 transition">شروط الاستخدام</button>
+        <button onclick="openLegalModal('about')" data-i18n="footerAbout" class="hover:text-emerald-400 transition">عن الموقع</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- نافذة تفاصيل المود -->
+  <div id="detailsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-start gap-4 mb-4">
+        <div class="flex items-center gap-4">
+          <img id="modalLogo" src="" class="w-16 h-16 rounded-xl object-cover bg-slate-800 shadow" />
+          <div>
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold">Bedrock Verified</span>
+            <h3 id="modalTitle" class="text-xl font-extrabold mt-1 text-white"></h3>
+            <p id="modalMeta" class="text-xs text-slate-400"></p>
+          </div>
+        </div>
+        <button onclick="closeModal('detailsModal')" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-5">
+        <h4 data-i18n="modalDescTitle" class="text-sm font-bold text-slate-300 mb-1">وصف المود:</h4>
+        <p id="modalSummary" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <h4 data-i18n="modalFilesTitle" class="text-sm font-bold text-emerald-400 mb-3">ملفات التحميل المتوفرة لنظام Windows 10 & 11:</h4>
+      <div id="modalFiles" class="space-y-2.5"></div>
+    </div>
+  </div>
+
+  <!-- نافذة قراءة المقال -->
+  <div id="articleModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <h3 id="artModalTitle" class="text-xl font-extrabold text-emerald-400"></h3>
+        <button onclick="closeModal('articleModal')" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+      </div>
+      <div id="artModalBody" class="text-sm text-slate-300 space-y-3 leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- نافذة الصفحات القانونية -->
+  <div id="legalModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <h3 id="legalTitle" class="text-lg font-extrabold text-emerald-400"></h3>
+        <button onclick="closeModal('legalModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div id="legalBody" class="text-sm text-slate-300 space-y-3 leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- نافذة دليل التثبيت -->
+  <div id="guideModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 data-i18n="guideTitle" class="text-lg font-extrabold text-emerald-400">طريقة تثبيت المودات على Windows 10 و 11</h3>
+        <button onclick="closeModal('guideModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <ol id="guideSteps" class="list-decimal list-inside space-y-3 text-sm text-slate-300 leading-relaxed"></ol>
+    </div>
+  </div>
+
+  <script>
+    const translations = {
+      ar: {
+        brandSub: 'Windows 10 & 11 Bedrock Mods',
+        navGuides: 'الشروحات',
+        navInstall: 'دليل التثبيت',
+        langBtn: '🌐 English',
+        heroTitle: 'اكتشف وحمّل أفضل مودات وشيدر <span class="text-emerald-400">ماين كرافت بيدروك</span>',
+        heroDesc: 'تحميل مباشر وآمن بصيغ <code class="text-emerald-400">.mcaddon</code> و <code class="text-emerald-400">.mcpack</code>',
+        searchPlaceholder: 'ابحث عن اسم المود (مثال: Furniture, Dragons, Shader)...',
+        searchBtn: 'بحث',
+        catAll: 'الكل',
+        catAddons: 'مودات وإضافات (Addons)',
+        catTextures: 'تيكستشر باك وشيدر',
+        catWorlds: 'عوالم (Worlds)',
+        loading: 'جاري جلب أحدث محتوى البيدروك...',
+        noResults: 'لم يتم العثور على نتائج مطابقة.',
+        byAuthor: 'بواسطة',
+        viewFilesBtn: 'عرض الملفات والتحميل',
+        modalDescTitle: 'وصف المود:',
+        modalFilesTitle: 'ملفات التحميل المتوفرة لنظام Windows 10 & 11:',
+        downloadBtn: '⬇ تحميل مباشر',
+        sizeLabel: 'الحجم:',
+        verLabel: 'الإصدار:',
+        blogBadge: 'مركز المعرفة',
+        blogHeading: 'دليلك الشامل لمودات ماين كرافت بيدروك على الويندوز',
+        blogSub: 'مقالات تقنية مبسطة لمساعدتك في تثبيت الإضافات وحل المشاكل الشائعة بأمان تام.',
+        readMore: 'اقرأ المقال كاملاً ←',
+        footerCopy: '© 2026 MODCRAFT. جميع الحقوق محفوظة.',
+        footerPrivacy: 'سياسة الخصوصية',
+        footerTerms: 'شروط الاستخدام',
+        footerAbout: 'عن الموقع',
+        guideTitle: 'طريقة تثبيت المودات على Windows 10 و 11',
+        guideList: [
+          'حمّل ملف المود بصيغة <code class="text-emerald-400">.mcaddon</code> أو <code class="text-emerald-400">.mcpack</code> من الموقع.',
+          'تأكد من إغلاق لعبة <strong>Minecraft for Windows</strong> أو تركها في القائمة الرئيسية.',
+          'اضغط <strong>نقرتين متتاليتين (Double-Click)</strong> على الملف المحمّل.',
+          'ستفتح اللعبة تلقائياً ويظهر إشعار في الأعلى: <em>"Import Started... Successfully imported"</em>.',
+          'أنشئ عالماً جديداً وفعّل المود من قسم <strong>Resource Packs</strong> و <strong>Behavior Packs</strong>.'
+        ],
+        articles: [
+          {
+            title: 'الفرق بين ملفات .mcaddon و .mcpack وكيفية تثبيتها على ويندوز 10 و 11',
+            excerpt: 'تعرف على الفروقات التقنية بين صيغ إضافات ماين كرافت البيدروك ولماذا تُعد هذه الصيغ الأسهل والأكثر أماناً للتثبيت التلقائي.',
+            content: `<p>تعتمد نسخة <strong>Minecraft Bedrock Edition</strong> على أنظمة ويندوز 10 و 11 نظاماً ذكياً لتثبيت الإضافات دون الحاجة لنقل الملفات يدوياً إلى مجلدات النظام المعقدة.</p>
+            <h4 class="font-bold text-emerald-400 mt-3">1. ما هو ملف .mcpack؟</h4>
+            <p>يُستخدم هذا الامتداد عادةً لحزم الموارد (Resource Packs) مثل تغيير شكل البلوكات، أو حزم الشيدر، أو عوالم اللعب الفردية.</p>
+            <h4 class="font-bold text-emerald-400 mt-3">2. ما هو ملف .mcaddon؟</h4>
+            <p>هو حزمة شاملة تجمع بين <strong>Behavior Pack</strong> و <strong>Resource Pack</strong> في ملف واحد. بمجرد النقر المزدوج عليه في ويندوز، يقوم النظام بفك ضغطه واستيراد الحزمتين تلقائياً داخل اللعبة.</p>`
+          },
+          {
+            title: 'أفضل 5 أنواع مودات تغير تجربة ماين كرافت بيدروك بالكامل',
+            excerpt: 'اكتشف أبرز الإضافات التي يبحث عنها اللاعبون: من مودات الأثاث الواقعي والتنانين إلى تحسينات الرسوميات.',
+            content: `<p>شهدت إضافات ماين كرافت بيدروك قفزة نوعية. إليك أبرز الفئات التي ننصح بتجربتها:</p>
+            <ul class="list-disc list-inside space-y-2 mt-2">
+              <li><strong>إضافات الأثاث والديكور:</strong> تضيف مئات القطع التفاعلية لتصميم المنازل العصرية.</li>
+              <li><strong>مودات الزعماء والتنانين:</strong> تمنحك تحديات جديدة، دروعاً أسطورية، ومخلوقات قابلة للترويض.</li>
+              <li><strong>حزم تحسين الواجهة:</strong> تسهل إدارة الحقيبة، إظهار متانة الدروع، وخريطة مصغرة للشاشة.</li>
+            </ul>`
+          },
+          {
+            title: 'حل مشكلة فشل استيراد المودات (Failed to Import) في ماين كرافت ويندوز',
+            excerpt: 'خطوات عملية وسريعة لحل أشهر الأخطاء التي تواجه اللاعبين عند محاولة تشغيل ملفات المودات على الكمبيوتر.',
+            content: `<p>إذا ظهرت لك رسالة <strong>"Failed to import"</strong> عند النقر على ملف المود، فغالباً ما يكون السبب أحد الأمور التالية:</p>
+            <ol class="list-decimal list-inside space-y-2 mt-2">
+              <li><strong>تعارض الإصدارات:</strong> تأكد من أن ملف المود متوافق مع إصدار لعبتك الحالي.</li>
+              <li><strong>تفعيل الميزات التجريبية:</strong> تتطلب معظم المودات تفعيل خيارات التجارب من إعدادات العالم.</li>
+              <li><strong>تكرار الحزمة:</strong> احذف النسخ القديمة من إعدادات التخزين داخل اللعبة ثم أعد التثبيت.</li>
+            </ol>`
+          }
+        ],
+        legal: {
+          privacy: {
+            title: 'سياسة الخصوصية (Privacy Policy)',
+            body: '<p>نحن نحترم خصوصية زوارنا بشكل كامل. هذا الموقع يعمل كواجهة بحث لتسهيل الوصول إلى مودات ماين كرافت البيدروك.</p><p>نحن لا نقوم بجمع أو بيع أي بيانات شخصية للمستخدمين. قد نستخدم ملفات تعريف الارتباط لتحسين تجربة التصفح وعرض إعلانات ملائمة.</p>'
+          },
+          terms: {
+            title: 'شروط الاستخدام (Terms of Service)',
+            body: '<p>جميع المودات والملفات المعروضة في هذا الموقع مملوكة لمطوريها الأصليين. الموقع غير تابع رسمياً لشركة Mojang Studios أو Microsoft.</p>'
+          },
+          about: {
+            title: 'عن الموقع (About Us)',
+            body: '<p>منصة MODCRAFT هي وجهتك الأولى للاعبي <strong>Minecraft Bedrock Edition</strong> على أنظمة Windows 10 و Windows 11 للبحث عن وتنزيل أحدث الإضافات بكل سهولة.</p>'
+          }
+        }
+      },
+      en: {
+        brandSub: 'Windows 10 & 11 Bedrock Mods',
+        navGuides: 'Guides',
+        navInstall: 'Install Guide',
+        langBtn: '🌐 العربية',
+        heroTitle: 'Discover & Download Best <span class="text-emerald-400">Minecraft Bedrock</span> Mods',
+        heroDesc: 'Direct & safe <code class="text-emerald-400">.mcaddon</code> & <code class="text-emerald-400">.mcpack</code> downloads',
+        searchPlaceholder: 'Search mods (e.g., Furniture, Dragons, Shader)...',
+        searchBtn: 'Search',
+        catAll: 'All',
+        catAddons: 'Add-ons & Mods',
+        catTextures: 'Textures & Shaders',
+        catWorlds: 'Worlds',
+        loading: 'Fetching latest Bedrock content...',
+        noResults: 'No mods found matching your search.',
+        byAuthor: 'By',
+        viewFilesBtn: 'View Files & Download',
+        modalDescTitle: 'Mod Description:',
+        modalFilesTitle: 'Available Files for Windows 10 & 11:',
+        downloadBtn: '⬇ Direct Download',
+        sizeLabel: 'Size:',
+        verLabel: 'Version:',
+        blogBadge: 'Knowledge Base',
+        blogHeading: 'Complete Guide to Minecraft Bedrock Mods on Windows',
+        blogSub: 'Helpful guides to install add-ons safely and troubleshoot common issues on Windows 10 & 11.',
+        readMore: 'Read Full Guide →',
+        footerCopy: '© 2026 MODCRAFT. All rights reserved.',
+        footerPrivacy: 'Privacy Policy',
+        footerTerms: 'Terms of Use',
+        footerAbout: 'About Us',
+        guideTitle: 'How to Install Mods on Windows 10 & 11',
+        guideList: [
+          'Download the <code class="text-emerald-400">.mcaddon</code> or <code class="text-emerald-400">.mcpack</code> file from our site.',
+          'Make sure <strong>Minecraft for Windows</strong> is closed or on the main menu.',
+          '<strong>Double-click</strong> the downloaded file in Windows Explorer.',
+          'Minecraft will launch automatically and show: <em>"Import Started... Successfully imported"</em>.',
+          'Create a new world and activate the add-on under <strong>Resource Packs</strong> and <strong>Behavior Packs</strong>.'
+        ],
+        articles: [
+          {
+            title: '.mcaddon vs .mcpack: Understanding Bedrock File Formats on Windows',
+            excerpt: 'Learn the key differences between Minecraft Bedrock file extensions and why they offer seamless one-click installation on Windows 10 & 11.',
+            content: `<p><strong>Minecraft Bedrock Edition</strong> on Windows 10 & 11 features a built-in import system that eliminates manual file copying.</p>
+            <h4 class="font-bold text-emerald-400 mt-3">1. What is a .mcpack file?</h4>
+            <p>Typically used for resource packs, textures, shaders, or custom UI elements.</p>
+            <h4 class="font-bold text-emerald-400 mt-3">2. What is a .mcaddon file?</h4>
+            <p>An all-in-one archive bundling both a <strong>Behavior Pack</strong> and a <strong>Resource Pack</strong>. Double-clicking it imports both simultaneously.</p>`
+          },
+          {
+            title: 'Top 5 Minecraft Bedrock Add-on Categories to Transform Your World',
+            excerpt: 'Explore the most popular add-on genres: from realistic furniture and dragons to performance shaders.',
+            content: `<p>Minecraft Bedrock add-ons have evolved dramatically. Here are the top categories worth trying:</p>
+            <ul class="list-disc list-inside space-y-2 mt-2">
+              <li><strong>Furniture & Decoration Add-ons:</strong> Add interactive blocks for modern builds.</li>
+              <li><strong>Dragons & Bosses:</strong> Introduce epic boss fights and tameable creatures.</li>
+              <li><strong>Utility & UI Packs:</strong> Enhance inventory management and mini-maps.</li>
+            </ul>`
+          },
+          {
+            title: 'How to Fix "Failed to Import" Errors in Minecraft for Windows',
+            excerpt: 'Quick troubleshooting steps to resolve common add-on import issues on Windows 10 and Windows 11.',
+            content: `<p>If you encounter a <strong>"Failed to import"</strong> notification, check these common fixes:</p>
+            <ol class="list-decimal list-inside space-y-2 mt-2">
+              <li><strong>Version Compatibility:</strong> Verify the add-on supports your current Bedrock version.</li>
+              <li><strong>Enable Experimental Features:</strong> Toggle Experimental Gameplay options in world settings.</li>
+              <li><strong>Remove Duplicate Packs:</strong> Delete older versions under Settings → Storage before importing.</li>
+            </ol>`
+          }
+        ],
+        legal: {
+          privacy: {
+            title: 'Privacy Policy',
+            body: '<p>We respect your privacy. This platform acts as a search interface to discover Minecraft Bedrock mods easily.</p><p>We do not sell personal data. We may use cookies to remember language preferences and serve relevant ads.</p>'
+          },
+          terms: {
+            title: 'Terms of Use',
+            body: '<p>All mods indexed on this website belong to their respective creators. Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p>'
+          },
+          about: {
+            title: 'About Us',
+            body: '<p>MODCRAFT is a clean, fast platform built to help <strong>Minecraft Bedrock Edition</strong> players on Windows 10 & 11 discover and install verified add-ons effortlessly.</p>'
+          }
+        }
+      }
+    };
+
+    let currentLang = 'ar';
+    let currentCategoryType = '';
+    let modsCache = [];
+    let searchTimeout = null;
+
+    function detectInitialLanguage() {
+      const savedLang = localStorage.getItem('site_lang');
+      if (savedLang) return savedLang;
+      const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+      return browserLang.startsWith('ar') ? 'ar' : 'en';
+    }
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('site_lang', lang);
+      const t = translations[lang];
+
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.body.classList.remove('lang-ar', 'lang-en');
+      document.body.classList.add(lang === 'ar' ? 'lang-ar' : 'lang-en');
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerHTML = t[key];
+      });
+
+      document.getElementById('langToggleBtn').textContent = t.langBtn;
+      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+
+      const searchBtn = document.getElementById('searchActionBtn');
+      if (lang === 'ar') {
+        searchBtn.classList.remove('right-2');
+        searchBtn.classList.add('left-2');
+      } else {
+        searchBtn.classList.remove('left-2');
+        searchBtn.classList.add('right-2');
+      }
+
+      document.getElementById('guideSteps').innerHTML = t.guideList.map(step => `<li>${step}</li>`).join('');
+      renderArticles();
+      if (modsCache.length > 0) renderMods(modsCache);
+    }
+
+    function toggleLanguage() {
+      applyLanguage(currentLang === 'ar' ? 'en' : 'ar');
+    }
+
+    function renderArticles() {
+      const t = translations[currentLang];
+      const container = document.getElementById('articlesContainer');
+      container.innerHTML = t.articles.map((art, index) => `
+        <article class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between hover:border-emerald-500/50 transition shadow-md">
+          <div>
+            <h3 class="font-bold text-lg text-white mb-2 leading-snug">${art.title}</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-4">${art.excerpt}</p>
+          </div>
+          <button onclick="openArticle(${index})" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 self-start">
+            ${t.readMore}
+          </button>
+        </article>
+      `).join('');
+    }
+
+    function openArticle(index) {
+      const art = translations[currentLang].articles[index];
+      document.getElementById('artModalTitle').textContent = art.title;
+      document.getElementById('artModalBody').innerHTML = art.content;
+      document.getElementById('articleModal').classList.replace('hidden', 'flex');
+    }
+
+    function openLegalModal(type) {
+      const item = translations[currentLang].legal[type];
+      document.getElementById('legalTitle').textContent = item.title;
+      document.getElementById('legalBody').innerHTML = item.body;
+      document.getElementById('legalModal').classList.replace('hidden', 'flex');
+    }
+
+    window.onload = () => {
+      applyLanguage(detectInitialLanguage());
+      fetchMods();
+    };
+
+    function openGuideModal() { document.getElementById('guideModal').classList.replace('hidden', 'flex'); }
+    function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+
+    function selectCategory(btn) {
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('bg-emerald-500', 'text-slate-950', 'shadow');
+        b.classList.add('bg-slate-900', 'border', 'border-slate-800', 'text-slate-300');
+      });
+      btn.classList.remove('bg-slate-900', 'border', 'border-slate-800', 'text-slate-300');
+      btn.classList.add('bg-emerald-500', 'text-slate-950', 'shadow');
+      currentCategoryType = btn.dataset.type;
+      fetchMods();
+    }
+
+    function handleSearch(e) {
+      clearTimeout(searchTimeout);
+      if (e.key === 'Enter') return fetchMods();
+      searchTimeout = setTimeout(fetchMods, 500);
+    }
+
+    async function fetchMods() {
+      const t = translations[currentLang];
+      let query = document.getElementById('searchInput').value.trim();
+
+      // دمج البحث الذكي مع التصنيفات لجلب نتائج مضمونة وغنية
+      if (currentCategoryType === 'texture') {
+        query = query ? query + ' texture' : 'shader';
+      } else if (currentCategoryType === 'world') {
+        query = query ? query + ' world' : 'world';
+      } else if (currentCategoryType === 'addon') {
+        query = query ? query + ' addon' : 'addon';
+      }
+
+      const grid = document.getElementById('modsGrid');
+      const status = document.getElementById('statusMessage');
+
+      grid.innerHTML = '';
+      status.textContent = t.loading;
+      status.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/mods?q=${encodeURIComponent(query)}`);
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Error');
+
+        modsCache = json.data || [];
+        if (modsCache.length === 0) {
+          status.textContent = t.noResults;
+          return;
+        }
+
+        status.classList.add('hidden');
+        renderMods(modsCache);
+      } catch (err) {
+        status.textContent = `⚠️ ${err.message}`;
+      }
+    }
+
+    function renderMods(mods) {
+      const t = translations[currentLang];
+      const grid = document.getElementById('modsGrid');
+      grid.innerHTML = mods.map((mod, idx) => {
+        const logo = mod.logo?.thumbnailUrl || 'https://via.placeholder.com/150?text=MC';
+        const downloads = Intl.NumberFormat('en', { notation: 'compact' }).format(mod.downloadCount);
+        const author = mod.authors?.[0]?.name || 'Creator';
+        const latestFile = mod.latestFiles?.[0]?.fileName || 'addon.mcaddon';
+        const ext = latestFile.split('.').pop();
+
+        return `
+          <div onclick="openDetails(${idx})" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 cursor-pointer transition duration-200 card-hover flex flex-col justify-between shadow-md">
+            <div>
+              <div class="flex items-start gap-3 mb-3">
+                <img src="${logo}" alt="${mod.name}" class="w-14 h-14 rounded-xl object-cover bg-slate-800 shrink-0 shadow" />
+                <div class="overflow-hidden">
+                  <h3 class="font-bold text-base text-white truncate">${mod.name}</h3>
+                  <p class="text-xs text-slate-400">${t.byAuthor} ${author}</p>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[11px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded font-bold">.${ext}</span>
+                    <span class="text-[11px] text-slate-400">⬇ ${downloads}</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">${mod.summary}</p>
+            </div>
+            <button class="w-full py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-bold text-xs transition">
+              ${t.viewFilesBtn}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openDetails(idx) {
+      const t = translations[currentLang];
+      const mod = modsCache[idx];
+      document.getElementById('modalLogo').src = mod.logo?.thumbnailUrl || '';
+      document.getElementById('modalTitle').textContent = mod.name;
+      document.getElementById('modalMeta').textContent = `${t.byAuthor}: ${mod.authors?.[0]?.name || '-'} | ⬇ ${mod.downloadCount.toLocaleString()}`;
+      document.getElementById('modalSummary').textContent = mod.summary;
+
+      const filesContainer = document.getElementById('modalFiles');
+      const files = mod.latestFiles || [];
+
+      filesContainer.innerHTML = files.slice(0, 5).map(file => {
+        const sizeMB = (file.fileLength / (1024 * 1024)).toFixed(2);
+        const versions = (file.gameVersions || []).slice(0, 3).join(', ');
+        const dlUrl = file.downloadUrl || mod.links?.websiteUrl;
+
+        return `
+          <div class="flex items-center justify-between gap-3 bg-slate-950 border border-slate-800 p-3 rounded-xl shadow-inner">
+            <div class="overflow-hidden">
+              <p class="text-sm font-bold text-white truncate" dir="ltr">${file.fileName}</p>
+              <p class="text-xs text-slate-400">${t.sizeLabel} ${sizeMB} MB ${versions ? `• ${t.verLabel} ${versions}` : ''}</p>
+            </div>
+            <a href="${dlUrl}" target="_blank" download
+              class="shrink-0 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow">
+              ${t.downloadBtn}
+            </a>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('detailsModal').classList.replace('hidden', 'flex');
+    }
+  </script>
+</body>
+</html>
